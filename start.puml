@@ -17,7 +17,7 @@ class Role <<entity>> {
     - int attack
     - int speed
     - int defend
-    - String name
+    - String nme
     + void useSkill(SpecialSkill s)
     + void attack()
 }
