@@ -11,6 +11,5 @@ public class SmokeBomb extends Item {
     @Override
     public void use(Role target) {
         // TODO: implement evasion / escape logic
-        System.out.println(target.getName() + " throws a Smoke Bomb!");
     }
 }

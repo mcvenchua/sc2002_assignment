@@ -7,7 +7,5 @@ public class Wolf extends Enemy {
     }
 
     @Override
-    public void takeTurn(Role target) {
-        attack(target);
-    }
+    
 }

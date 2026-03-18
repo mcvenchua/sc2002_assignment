@@ -9,8 +9,5 @@ public class Stun extends SpecialSkill {
     }
 
     @Override
-    public void activate(Role caster, Role target) {
-        // TODO: apply stun status effect
-        System.out.println(caster.getName() + " stuns " + target.getName() + "!");
-    }
+    
 }

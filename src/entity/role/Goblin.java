@@ -7,7 +7,5 @@ public class Goblin extends Enemy {
     }
 
     @Override
-    public void takeTurn(Role target) {
-        attack(target);
-    }
+    
 }

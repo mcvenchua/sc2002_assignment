@@ -9,10 +9,5 @@ public class ArcaneBlast extends SpecialSkill {
     }
 
     @Override
-    public void activate(Role caster, Role target) {
-        int damage = caster.getAttack() * 2;
-        target.takeDamage(damage);
-        System.out.println(caster.getName() + " fires Arcane Blast at "
-                + target.getName() + " for " + damage + " damage!");
-    }
+    
 }
