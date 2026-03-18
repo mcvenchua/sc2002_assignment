@@ -1,0 +1,80 @@
+@startuml
+
+' ==========================================
+' Stereotype Styling
+' ==========================================
+skinparam class {
+    BackgroundColor<<Entity>> #FDF5E6
+    BackgroundColor<<Control>> #E1F5FE
+}
+
+' ==========================================
+' 1. Entity Layer
+' ==========================================
+
+class Role <<entity>> {
+    - int hp
+    - int attack
+    - int speed
+    - int defend
+    - String name
+    + void useSkill(SpecialSkill s)
+    + void attack()
+}
+
+class Player <<entity>>
+class Enemy <<entity>>
+
+' Inheritances (Fixed Arrow Direction)
+Role <|-- Player
+Role <|-- Enemy
+
+' Player Subclasses
+Player <|-- Warrior
+Player <|-- Wizard
+
+' Enemy Subclasses
+Enemy <|-- Goblin
+Enemy <|-- Wolf
+
+' Items
+abstract class Item <<entity>>
+Item <|-- Potion
+Item <|-- PowerStone
+Item <|-- SmokeBomb
+
+' Skills
+abstract class SpecialSkill <<entity>>
+SpecialSkill <|-- ArcaneBlast
+SpecialSkill <|-- Stun
+
+class Cooldown <<entity>> {
+    - int remainingTicks
+    + boolean isReady()
+    + void reset()
+}
+
+' ==========================================
+' 2. Control Layer
+' ==========================================
+
+class RoundController <<control>> {
+    - int currentRound
+    - List<Role> players
+    + void startNextRound()
+    + void updateCooldowns()
+}
+
+' ==========================================
+' 3. Relationships (Cardinality)
+' ==========================================
+
+' Aggregations
+Player o-- "0..*" Item : "possesses"
+Player o-- "0..*" SpecialSkill : "knows"
+RoundController o-- "0..*" Role : "manages"
+
+' Composition: Every Role has exactly 1 Cooldown
+Role *-- "1..1" Cooldown
+
+@enduml
