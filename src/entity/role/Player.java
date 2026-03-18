@@ -33,4 +33,5 @@ public abstract class Player extends Role {
 
     // public List<Item> getInventory()      { return inventory; }
     // public List<SpecialSkill> getSkills() { return skills; }
+    
 }

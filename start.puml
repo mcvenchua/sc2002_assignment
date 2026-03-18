@@ -47,7 +47,6 @@ Item <|-- SmokeBomb
 abstract class SpecialSkill <<entity>>
 SpecialSkill <|-- ArcaneBlast
 SpecialSkill <|-- Stun
-
 class Cooldown <<entity>> {
     - int remainingTicks
     + boolean isReady()
@@ -76,5 +75,8 @@ RoundController o-- "0..*" Role : "manages"
 
 ' Composition: Every Role has exactly 1 Cooldown
 Role *-- "1..1" Cooldown
+class Duration{
+    int time_left
+}
 
 @enduml
