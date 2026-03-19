@@ -3,7 +3,7 @@ package entity.role;
 public class Wolf extends Enemy {
 
     public Wolf(String name) {
-        super(name, 55, 14, 16, 4);
+        super(name, 40, 45, 35, 15);
     }
 
     @Override

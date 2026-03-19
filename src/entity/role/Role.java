@@ -1,6 +1,7 @@
 package entity.role;
 
-import entity.skill.SpecialSkill;
+import entity.CoolDown;
+import entity.status.SpecialSkill;
 
 public abstract class Role {
     protected String name;
@@ -8,7 +9,7 @@ public abstract class Role {
     protected int attack;
     protected int speed;
     protected int defend;
-    protected Cooldown cooldown;   // composition: exactly 1 Cooldown
+    protected CoolDown cooldown;   // composition: exactly 1 Cooldown
 
     public Role(String name, int hp, int attack, int speed, int defend) {
         this.name     = name;
@@ -16,38 +17,15 @@ public abstract class Role {
         this.attack   = attack;
         this.speed    = speed;
         this.defend   = defend;
-        this.cooldown = new Cooldown(0);
+        this.cooldown = new CoolDown(0);
     }
 
-    public void attack(Role target) {
-        int damage = Math.max(0, this.attack - target.defend);
-        target.takeDamage(damage);
-        System.out.println(name + " attacks " + target.getName()
-                + " for " + damage + " damage!");
+    public void take_action() {
+        // TODO: design a method here to not only support attack for enemy
+        // After calling this method, user can decide which action to take, please override this method in player and enemy level
     }
 
-    public void useSkill(SpecialSkill s, Role target) {
-        if (!cooldown.isReady()) {
-            System.out.println(name + "'s skill is on cooldown ("
-                    + cooldown.getRemainingTicks() + " ticks left).");
-            return;
-        }
-        s.activate(this, target);
-        cooldown.reset(s.getCooldownTicks());
-    }
-
-    public void takeDamage(int amount) {
-        hp = Math.max(0, hp - amount);
-    }
-
-    public void heal(int amount) {
-        hp += amount;
-    }
-
-    public void boostAttack(int amount) {
-        attack += amount;
-    }
-
+    
     public boolean isAlive() {
         return hp > 0;
     }
@@ -57,7 +35,7 @@ public abstract class Role {
     public int getAttack()        { return attack; }
     public int getSpeed()         { return speed; }
     public int getDefend()        { return defend; }
-    public Cooldown getCooldown() { return cooldown; }
+    public CoolDown getCooldown() { return cooldown; }
 
     @Override
     public String toString() {
