@@ -1,11 +1,16 @@
 package entity.role;
 
-public abstract class Enemy extends Role {
+import entity.action.BasicAttack;
+
+public abstract class Enemy extends Combatant {
 
     public Enemy(String name, int hp, int attack, int speed, int defend) {
         super(name, hp, attack, speed, defend);
     }
 
-    // Subclasses define their AI behaviour
-    public abstract void takeTurn(Role target);
+    @Override
+    public void take_action(Combatant target) {
+        next_act = new BasicAttack(this, target);
+        next_act.execute();
+    }
 }

@@ -12,7 +12,7 @@ skinparam class {
 ' 1. Entity Layer
 ' ==========================================
 
-class Role <<entity>> {
+class Combatant <<entity>> {
     - int hp
     - int attack
     - int speed
@@ -26,8 +26,8 @@ class Player <<entity>>
 class Enemy <<entity>>
 
 ' Inheritances (Fixed Arrow Direction)
-Role <|-- Player
-Role <|-- Enemy
+Combatant <|-- Player
+Combatant <|-- Enemy
 
 ' Player Subclasses
 Player <|-- Warrior

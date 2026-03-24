@@ -1,4 +1,4 @@
-package entity;
+package entity.status;
 
 public class Duration {
     private int remainingRound;

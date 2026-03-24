@@ -1,6 +1,6 @@
 package entity.item;
 
-import entity.role.Role;
+import entity.role.Combatant;
 
 public class SmokeBomb extends Item {
 
@@ -9,7 +9,7 @@ public class SmokeBomb extends Item {
     }
 
     @Override
-    public void use(Role target) {
+    public void use(Combatant target) {
         // TODO: implement evasion / escape logic
     }
 }

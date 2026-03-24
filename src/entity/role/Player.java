@@ -3,19 +3,21 @@ package entity.role;
 import java.util.ArrayList;
 import java.util.List;
 
-import entity.status.SpecialSkill;
+import entity.action.skills.SpecialSkill;
+import entity.item.Item;
+import ui.UI;
 
-public abstract class Player extends Role {
-    protected List<SpecialSkill> skills;   // aggregation: 0..* SpecialSkills
+public abstract class Player extends Combatant {
+    protected List<SpecialSkill> skills = new ArrayList<>();
+    protected List<Item> items = new ArrayList<>();
+    protected UI ui;
 
     public Player(String name, int hp, int attack, int speed, int defend) {
         super(name, hp, attack, speed, defend);
-        this.skills    = new ArrayList<>();
     }
 
-    
-    public void useItem(int index, Role target) {
-        
+    public void setUI(UI ui) {
+        this.ui = ui;
     }
 
     public void learnSkill(SpecialSkill skill) {
@@ -23,5 +25,5 @@ public abstract class Player extends Role {
     }
 
     public List<SpecialSkill> getSkills() { return skills; }
-    
+    public List<Item> getItems() { return items; }
 }

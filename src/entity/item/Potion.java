@@ -1,6 +1,6 @@
 package entity.item;
 
-import entity.role.Role;
+import entity.role.Combatant;
 
 public class Potion extends Item {
 

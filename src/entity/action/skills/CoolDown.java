@@ -1,4 +1,4 @@
-package entity;
+package entity.action.skills;
 
 public class CoolDown {
     // each special skill has an independent cool_down instance

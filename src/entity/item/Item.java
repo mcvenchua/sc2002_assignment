@@ -1,6 +1,6 @@
 package entity.item;
 
-import entity.role.Role;
+import entity.role.Combatant;
 
 public abstract class Item {
     protected String name;
@@ -9,7 +9,7 @@ public abstract class Item {
         this.name = name;
     }
 
-    public abstract void use(Role target);
+    public abstract void use(Combatant target);
 
     public String getName() { return name; }
 }
