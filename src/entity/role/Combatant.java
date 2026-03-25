@@ -22,7 +22,7 @@ public abstract class Combatant {
         this.speed    = speed;
         this.defend   = defend;
     }
-    public void takeAction(Combatant target) {
+    public void takeAction(List<Combatant> targets) {
         // Override in Player and Enemy to decide and execute an action
     }
     

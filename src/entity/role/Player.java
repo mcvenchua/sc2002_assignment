@@ -28,19 +28,20 @@ public abstract class Player extends Combatant {
     }
 
     @Override
-    public void takeAction(Combatant target) {
+    public void takeAction(List<Combatant> targets) {
         while (true) {
             ui.print("Choose action: 1.Attack  2.Defend  3.Special Skill  4.Use Item");
             int p = ui.readInt();
             switch (p) {
                 case 1:
+                    Combatant target = selectTarget(targets);
                     new BasicAttack(this, target, this.attack).execute(target);
                     break;
                 case 2:
-                    new Defend(this).execute(target);
+                    new Defend(this).execute(null);
                     break;
                 case 3:
-                    boolean used = activateSkill(target);
+                    boolean used = activateSkill(targets);
                     if (!used) continue;
                     break;
                 case 4:
@@ -48,7 +49,7 @@ public abstract class Player extends Combatant {
                         ui.print("No items available.");
                         continue;
                     }
-                    new UseItem(this, items.get(0), target).execute(target);
+                    new UseItem(this, items.get(0), null).execute(null);
                     break;
                 default:
                     ui.print("Invalid choice.");
@@ -58,9 +59,24 @@ public abstract class Player extends Combatant {
         }
     }
 
+    private Combatant selectTarget(List<Combatant> targets) {
+        while (true) {
+            ui.print("Select target:");
+            for (int i = 0; i < targets.size(); i++) {
+                Combatant t = targets.get(i);
+                ui.print((i + 1) + ". " + t.getName() + " (HP: " + t.getHp() + ")");
+            }
+            int choice = ui.readInt();
+            if (choice >= 1 && choice <= targets.size()) {
+                return targets.get(choice - 1);
+            }
+            ui.print("Invalid choice.");
+        }
+    }
+
     // Subclasses implement their specific special skill logic.
     // Return true if skill was used, false if on cooldown (loop will retry).
-    protected abstract boolean activateSkill(Combatant target);
+    protected abstract boolean activateSkill(List<Combatant> targets);
 
     public List<SpecialSkill> getSkills() { return skills; }
     public List<Item> getItems() { return items; }

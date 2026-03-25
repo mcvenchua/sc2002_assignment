@@ -1,5 +1,6 @@
 package entity.role;
 
+import java.util.List;
 import entity.action.skills.ShieldBash;
 
 public class Warrior extends Player {
@@ -11,11 +12,12 @@ public class Warrior extends Player {
     }
 
     @Override
-    protected boolean activateSkill(Combatant target) {
+    protected boolean activateSkill(List<Combatant> targets) {
         if (!shieldBash.isReady()) {
             ui.print("Shield Bash on cooldown (" + shieldBash.getRemainingCooldown() + " turns left).");
             return false;
         }
+        Combatant target = selectTarget(targets);
         shieldBash.execute(target);
         return true;
     }
