@@ -15,7 +15,7 @@ public class UseItem implements Action {
     }
 
     @Override
-    public void execute() {
+    public void execute(Combatant target) {
         // TODO: implement use item logic
     }
 }

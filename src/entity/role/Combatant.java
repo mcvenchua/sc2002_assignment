@@ -17,13 +17,16 @@ public abstract class Combatant {
         this.speed    = speed;
         this.defend   = defend;
     }
-    public void take_action(Combatant target) {
+    public void takeAction(Combatant target) {
         // Override in Player and Enemy to decide and execute an action
     }
     
     
     public boolean isAlive() {
         return hp > 0;
+    }
+    public void getAttack(int attack){
+        this.hp=Math.max(0,this.hp-=Math.max(0,attack-this.defend));
     }
 
     public String getName()       { return name; }

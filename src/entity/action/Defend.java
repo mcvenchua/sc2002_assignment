@@ -10,7 +10,7 @@ public class Defend implements Action {
     }
 
     @Override
-    public void execute() {
+    public void execute(Combatant target) {
         // TODO: implement defend logic
     }
 }
