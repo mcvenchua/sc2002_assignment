@@ -1,6 +1,7 @@
 package entity.role;
 
 import entity.action.EnemyActionStrategy;
+import entity.status.StatusEffect;
 
 public abstract class Enemy extends Combatant {
     private final EnemyActionStrategy actionStrategy;
@@ -12,6 +13,11 @@ public abstract class Enemy extends Combatant {
 
     @Override
     public void takeAction(Combatant target) {
-        actionStrategy.chooseAction(this, target).execute(target);
+        for (StatusEffect effect : statusEffects) {
+            effect.apply(this);
+        }
+        if (!stop) {
+            actionStrategy.chooseAction(this, target).execute(target);
+        }
     }
 }
