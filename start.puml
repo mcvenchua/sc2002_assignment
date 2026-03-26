@@ -1,4 +1,4 @@
-@startuml
+@startuml TurnBasedCombat
 
 ' ==========================================
 ' Stereotype Styling
@@ -6,77 +6,221 @@
 skinparam class {
     BackgroundColor<<Entity>> #FDF5E6
     BackgroundColor<<Control>> #E1F5FE
+    BackgroundColor<<Interface>> #E8F5E9
+    BackgroundColor<<Strategy>> #F3E5F5
 }
 
 ' ==========================================
-' 1. Entity Layer
+' 1. Entity Layer — Combatants
 ' ==========================================
 
-class Combatant <<entity>> {
+abstract class Combatant <<Entity>> {
+    - String name
     - int hp
     - int attack
     - int speed
     - int defend
-    - String nme
-    + void useSkill(SpecialSkill s)
-    + void attack()
+    - boolean stop
+    - List<StatusEffect> statusEffects
+    + void takeAction(List<Combatant> targets)
+    + boolean isAlive()
+    + void getAttack(int attack)
+    + void addStatusEffect(StatusEffect e)
+    + void modifyAttack(int delta)
+    + void setStop(boolean stop)
 }
 
-class Player <<entity>>
-class Enemy <<entity>>
+abstract class Player <<Entity>> {
+    - List<SpecialSkill> skills
+    - List<Item> items
+    - UI ui
+    + void takeAction(List<Combatant> targets)
+    # Combatant selectTarget(List<Combatant> targets)
+    # boolean activateSkill(List<Combatant> targets)
+    + void setUI(UI ui)
+    + void learnSkill(SpecialSkill skill)
+}
 
-' Inheritances (Fixed Arrow Direction)
+abstract class Enemy <<Entity>> {
+    - EnemyActionStrategy actionStrategy
+    + void takeAction(List<Combatant> targets)
+}
+
+class Warrior <<Entity>> {
+    - ShieldBash shieldBash
+    # boolean activateSkill(List<Combatant> targets)
+}
+
+class Wizard <<Entity>> {
+    - AcranBlast arcaneBlast
+    # boolean activateSkill(List<Combatant> targets)
+}
+
+class Goblin <<Entity>>
+class Wolf <<Entity>>
+
 Combatant <|-- Player
 Combatant <|-- Enemy
-
-' Player Subclasses
 Player <|-- Warrior
 Player <|-- Wizard
-
-' Enemy Subclasses
 Enemy <|-- Goblin
 Enemy <|-- Wolf
 
-' Items
-abstract class Item <<entity>>
+' ==========================================
+' 2. Action Layer
+' ==========================================
+
+interface Action <<Interface>> {
+    + void execute(Combatant target)
+}
+
+class BasicAttack <<Entity>> {
+    - Combatant attacker
+    - Combatant target
+    - int attack
+    + void execute(Combatant target)
+}
+
+class Defend <<Entity>> {
+    - Combatant defender
+    + void execute(Combatant target)
+}
+
+class UseItem <<Entity>> {
+    - Combatant user
+    - Item item
+    + void execute(Combatant target)
+}
+
+abstract class SpecialSkill <<Entity>> {
+    - CoolDown cooldown
+    + boolean isReady()
+    + int getRemainingCooldown()
+    + void execute(Combatant target)
+}
+
+class ShieldBash <<Entity>> {
+    - Combatant attacker
+    + void execute(Combatant target)
+}
+
+class AcranBlast <<Entity>> {
+    - List<Combatant> targets
+    - Combatant wizard
+    + void execute(Combatant target)
+}
+
+Action <|.. BasicAttack
+Action <|.. Defend
+Action <|.. UseItem
+Action <|.. SpecialSkill
+SpecialSkill <|-- ShieldBash
+SpecialSkill <|-- AcranBlast
+
+' ==========================================
+' 3. Strategy Layer
+' ==========================================
+
+interface EnemyActionStrategy <<Strategy>> {
+    + Action chooseAction(Enemy self, Combatant target)
+}
+
+class BasicAttackStrategy <<Strategy>> {
+    + Action chooseAction(Enemy self, Combatant target)
+}
+
+EnemyActionStrategy <|.. BasicAttackStrategy
+Enemy o-- "1" EnemyActionStrategy : "uses"
+
+' ==========================================
+' 4. Status Effects
+' ==========================================
+
+abstract class StatusEffect <<Entity>> {
+    - String name
+    - Duration duration
+    + void apply(Combatant target)
+    + void tick()
+    + boolean isActive()
+}
+
+class Stun <<Entity>> {
+    + void apply(Combatant target)
+}
+
+class ArcaneBlastEffect <<Entity>> {
+    + void apply(Combatant target)
+}
+
+class Duration <<Entity>> {
+    - int remainingRound
+    + void set(int a)
+    + void reset()
+    + int get()
+    + boolean is_over()
+}
+
+StatusEffect <|-- Stun
+StatusEffect <|-- ArcaneBlastEffect
+StatusEffect *-- "1" Duration
+
+' ==========================================
+' 5. Items
+' ==========================================
+
+abstract class Item <<Entity>>
+
+class Potion <<Entity>>
+class PowerStone <<Entity>>
+class SmokeBomb <<Entity>>
+
 Item <|-- Potion
 Item <|-- PowerStone
 Item <|-- SmokeBomb
 
-' Skills
-abstract class SpecialSkill <<entity>>
-SpecialSkill <|-- ArcaneBlast
-SpecialSkill <|-- Stun
-class Cooldown <<entity>> {
+' ==========================================
+' 6. Control Layer
+' ==========================================
+
+class RoundController <<Control>> {
+    - int currentRound
+    - List<Combatant> roles
+    + void addRole(Combatant role)
+    + void runRound()
+}
+
+' ==========================================
+' 7. UI Layer
+' ==========================================
+
+interface UI <<Interface>> {
+    + void print(String msg)
+    + int readInt()
+}
+
+class CLI <<Entity>> {
+    + void print(String msg)
+    + int readInt()
+}
+
+UI <|.. CLI
+
+' ==========================================
+' 8. Relationships
+' ==========================================
+
+Player o-- "0..2" Item : "carries"
+Player o-- "0..*" SpecialSkill : "knows"
+Combatant o-- "0..*" StatusEffect : "has"
+RoundController o-- "0..*" Combatant : "manages"
+Player --> UI : "uses"
+SpecialSkill *-- "1" CoolDown
+
+class CoolDown <<Entity>> {
     - int remainingTicks
     + boolean isReady()
     + void reset()
-}
-
-' ==========================================
-' 2. Control Layer
-' ==========================================
-
-class RoundController <<control>> {
-    - int currentRound
-    - List<Role> players
-    + void startNextRound()
-    + void updateCooldowns()
-}
-
-' ==========================================
-' 3. Relationships (Cardinality)
-' ==========================================
-
-' Aggregations
-Player o-- "0..*" Item : "possesses"
-Player o-- "0..*" SpecialSkill : "knows"
-RoundController o-- "0..*" Role : "manages"
-
-' Composition: Every Role has exactly 1 Cooldown
-SpecialSkill*-- "1..1" Cooldown
-class Duration{
-    int time_left
+    + void tick()
 }
 
 @enduml
