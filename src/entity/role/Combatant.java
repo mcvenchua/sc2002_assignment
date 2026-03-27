@@ -9,6 +9,7 @@ public abstract class Combatant {
     protected int attack;
     protected int speed;
     protected int defend;
+    private int defendBonusRounds = 0;
     protected List<StatusEffect> statusEffects = new ArrayList<>();
     protected boolean stop = false;
 
@@ -22,6 +23,7 @@ public abstract class Combatant {
         this.speed    = speed;
         this.defend   = defend;
     }
+    
     public void takeAction(List<Combatant> targets) {
         // Override in Player and Enemy to decide and execute an action
     }
@@ -30,8 +32,10 @@ public abstract class Combatant {
     public boolean isAlive() {
         return hp > 0;
     }
-    public void getAttack(int attack){
-        this.hp=Math.max(0,this.hp-=Math.max(0,attack-this.defend));
+
+    public void getAttack(int attackerAttack) {
+        int damage = Math.max(0, attackerAttack - this.defend);
+        this.hp = Math.max(0, this.hp - damage);
     }
 
     public String getName()       { return name; }
@@ -39,6 +43,28 @@ public abstract class Combatant {
     public int getAttack()        { return attack; }
     public int getSpeed()         { return speed; }
     public int getDefend()        { return defend; }
+
+    public void modifyDefend(int delta) {
+        this.defend += delta;
+    }
+
+    public void applyDefendBuff() {
+        if (defendBonusRounds == 0) {
+            modifyDefend(10);
+        }
+        defendBonusRounds = 2;
+    }
+
+    public void onEndBattleRound() {
+        if (defendBonusRounds <= 0) {
+            return;
+        }
+        defendBonusRounds--;
+        if (defendBonusRounds == 0) {
+            modifyDefend(-10);
+        }
+    }
+
     public void modifyAttack(int attack){
         this.attack+=attack;
     }

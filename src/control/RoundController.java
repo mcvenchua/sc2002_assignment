@@ -17,5 +17,11 @@ public class RoundController {
         roles.add(role);
     }
 
-    
+    public void endBattleRound() {
+        for (Combatant role : roles) {
+            role.onEndBattleRound();
+        }
+        currentRound++;
+    }
+
 }

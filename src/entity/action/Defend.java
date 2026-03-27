@@ -3,7 +3,7 @@ package entity.action;
 import entity.role.Combatant;
 
 public class Defend implements Action {
-    private Combatant defender;
+    private final Combatant defender;
 
     public Defend(Combatant defender) {
         this.defender = defender;
@@ -11,6 +11,6 @@ public class Defend implements Action {
 
     @Override
     public void execute(Combatant target) {
-        // TODO: implement defend logic
+        defender.applyDefendBuff();
     }
 }
