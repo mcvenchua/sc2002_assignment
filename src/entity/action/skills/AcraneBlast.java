@@ -4,7 +4,7 @@ import java.util.List;
 
 import entity.role.Combatant;
 
-public class AcranBlast extends SpecialSkill {
+public class AcraneBlast extends SpecialSkill {
     @Override
     protected List<Combatant> targets;
     protected Combatant user;
