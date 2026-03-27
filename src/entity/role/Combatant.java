@@ -23,11 +23,10 @@ public abstract class Combatant {
         this.speed    = speed;
         this.defend   = defend;
     }
-    
+
     public void takeAction(List<Combatant> targets) {
         // Override in Player and Enemy to decide and execute an action
     }
-    
     
     public boolean isAlive() {
         return hp > 0;
@@ -38,11 +37,25 @@ public abstract class Combatant {
         this.hp = Math.max(0, this.hp - damage);
     }
 
-    public String getName()       { return name; }
-    public int getHp()            { return hp; }
-    public int getAttack()        { return attack; }
-    public int getSpeed()         { return speed; }
-    public int getDefend()        { return defend; }
+    public String getName() {
+        return name;
+    }
+
+    public int getHp() { 
+        return hp;
+    }
+    
+    public int getAttack() { 
+        return attack; 
+    }
+    
+    public int getSpeed() { 
+        return speed; 
+    }
+    
+    public int getDefend() { 
+        return defend; 
+    }
 
     public void modifyDefend(int delta) {
         this.defend += delta;
