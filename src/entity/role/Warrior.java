@@ -3,7 +3,7 @@ package entity.role;
 import entity.action.skills.ShieldBash;
 
 public class Warrior extends Player {
-    private ShieldBash shieldBash = new ShieldBash(this.attack);
+    private final ShieldBash shieldBash = new ShieldBash(this);
 
     public Warrior(String name) {
         super(name, 260, 40, 30, 20, 260);  // hp=260, atk=40, spd=30, def=20
