@@ -8,9 +8,8 @@ public abstract class Enemy extends Combatant {
     private final EnemyActionStrategy actionStrategy;
 
     public Enemy(String name, int hp, int attack, int speed, int defend, EnemyActionStrategy strategy, int max_hp) {
-        super(name, hp, attack, speed, defend);
+        super(name, hp, attack, speed, defend, max_hp);
         this.actionStrategy = strategy;
-        this.max_hp = max_hp;
     }
 
     @Override

@@ -19,15 +19,16 @@ public abstract class Combatant {
     protected List<Action> next_act;
 
 
-    public Combatant(String name, int hp, int attack, int speed, int defend) {
+    public Combatant(String name, int hp, int attack, int speed, int defend, int max_hp) {
         this.name     = name;
         this.hp       = hp;
         this.attack   = attack;
         this.speed    = speed;
         this.defend   = defend;
+        this.max_hp   = max_hp;
     }
 
-    public void takeAction(List<Combatant> targets) {
+    public void takeAction(Combatant target) {
         // Override in Player and Enemy to decide and execute an action
     }
     
