@@ -4,9 +4,9 @@ import entity.item.Item;
 import entity.role.Combatant;
 
 public class UseItem implements Action {
-    private Combatant user;
-    private Item item;
-    private Combatant target;
+    private final Combatant user;
+    private final Item item;
+    private final Combatant target;
 
     public UseItem(Combatant user, Item item, Combatant target) {
         this.user = user;
@@ -16,6 +16,7 @@ public class UseItem implements Action {
 
     @Override
     public void execute(Combatant target) {
-        // TODO: implement use item logic
+        Combatant resolved = target != null ? target : (this.target != null ? this.target : user);
+        item.use(resolved);
     }
 }
