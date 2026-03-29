@@ -1,13 +1,12 @@
 package entity.role;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import entity.action.BasicAttack;
 import entity.action.Defend;
 import entity.action.UseItem;
 import entity.action.skills.SpecialSkill;
 import entity.item.Item;
+import java.util.ArrayList;
+import java.util.List;
 import ui.UI;
 
 public abstract class Player extends Combatant {
@@ -15,8 +14,8 @@ public abstract class Player extends Combatant {
     protected List<Item> items = new ArrayList<>();
     protected UI ui;
 
-    public Player(String name, int hp, int attack, int speed, int defend) {
-        super(name, hp, attack, speed, defend);
+    public Player(String name, int hp, int attack, int speed, int defend,int max_hp) {
+        super(name, hp, attack, speed, defend, max_hp);
     }
 
     public void setUI(UI ui) {

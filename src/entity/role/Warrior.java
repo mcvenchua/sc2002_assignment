@@ -4,10 +4,10 @@ import java.util.List;
 import entity.action.skills.ShieldBash;
 
 public class Warrior extends Player {
-    private final ShieldBash shieldBash = new ShieldBash();
+    private ShieldBash shieldBash = new ShieldBash(this.attack);
 
     public Warrior(String name) {
-        super(name, 260, 40, 30, 20);  // hp=260, atk=40, spd=30, def=20
+        super(name, 260, 40, 30, 20, 260);  // hp=260, atk=40, spd=30, def=20
         skills.add(shieldBash);
     }
 

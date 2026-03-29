@@ -7,7 +7,7 @@ public class Wizard extends Player {
     private final AcranBlast arcaneBlast = new AcranBlast();
 
     public Wizard(String name) {
-        super(name, 200, 50, 20, 10);  // hp=200, atk=50, spd=20, def=10
+        super(name, 200, 50, 20, 10, 200);  // hp=200, atk=50, spd=20, def=10
         skills.add(arcaneBlast);
     }
 

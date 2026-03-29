@@ -1,15 +1,18 @@
 package entity.role;
+import entity.action.Action;
+import entity.status.Duration;
+import entity.status.StatusEffect;
 import java.util.ArrayList;
 import java.util.List;
-import entity.action.Action;
-import entity.status.StatusEffect;
 public abstract class Combatant {
     protected String name;
     protected int hp;
     protected int attack;
     protected int speed;
     protected int defend;
+    protected  int max_hp;
     private int defendBonusRounds = 0;
+    private Duration smokeBombDuration = new Duration(0);
     protected List<StatusEffect> statusEffects = new ArrayList<>();
     protected boolean stop = false;
 
@@ -33,8 +36,17 @@ public abstract class Combatant {
     }
 
     public void getAttack(int attackerAttack) {
+        if (!smokeBombDuration.is_over()) return; // smoke bomb absorbs the hit
         int damage = Math.max(0, attackerAttack - this.defend);
         this.hp = Math.max(0, this.hp - damage);
+    }
+
+    public void applySmokeBomb() {
+        smokeBombDuration.set(2); // current round + next round
+    }
+
+    public boolean isSmokeBombActive() {
+        return !smokeBombDuration.is_over();
     }
 
     public String getName() {
@@ -69,12 +81,12 @@ public abstract class Combatant {
     }
 
     public void onEndBattleRound() {
-        if (defendBonusRounds <= 0) {
-            return;
+        if (defendBonusRounds > 0) {
+            defendBonusRounds--;
+            if (defendBonusRounds == 0) modifyDefend(-10);
         }
-        defendBonusRounds--;
-        if (defendBonusRounds == 0) {
-            modifyDefend(-10);
+        if (!smokeBombDuration.is_over()) {
+            smokeBombDuration.set(smokeBombDuration.get() - 1);
         }
     }
 
@@ -87,5 +99,7 @@ public abstract class Combatant {
     }
 
     public void setStop(boolean stop) { this.stop = stop; }
-
+    public void modifyHp(int delta) {
+        this.hp = Math.max(0, Math.min(max_hp, this.hp + delta));
+    }
 }

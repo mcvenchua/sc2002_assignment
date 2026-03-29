@@ -1,20 +1,27 @@
 package entity.action.skills;
 
+import entity.role.Combatant;
 import java.util.List;
 
-import entity.role.Combatant;
-
 public class AcraneBlast extends SpecialSkill {
+    private final Combatant user;
+    private final List<Combatant> targets;
+
+    public AcraneBlast(Combatant user, List<Combatant> targets) {
+        this.user = user;
+        this.targets = targets;
+    }
+
     @Override
-    protected List<Combatant> targets;
-    protected Combatant user;
-    public AcranBlast(){
-        this.cooldown.reset();
+    public void execute(Combatant ignored) {
+        for (Combatant enemy : targets) {
+            if (enemy.isAlive()) {
+                enemy.getAttack(user.getAttack());
+                if (!enemy.isAlive()) {
+                    user.modifyAttack(10); // +10 ATK per kill, lasts until end of level
+                }
+            }
+        }
+        cooldown.set(3);
     }
-    public void execute(Combatant targets) {
-        for (int i = 0; i < this.targets.size(); i++) {
-        Combatant enemy = this.targets.getAttack(i);
-        // TODO: implement ArcaneBlast logic
-    }
-        this.user.modifyAttack(10);
 }

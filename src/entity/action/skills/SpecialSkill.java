@@ -3,7 +3,7 @@ package entity.action.skills;
 import entity.action.Action;
 
 public abstract class SpecialSkill implements Action {
-    protected CoolDown cooldown = new CoolDown(0);
+    public CoolDown cooldown = new CoolDown(0);
     public boolean isReady() {
         return cooldown.isReady();
     }
