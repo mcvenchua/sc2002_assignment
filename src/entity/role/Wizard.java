@@ -1,6 +1,5 @@
 package entity.role;
 
-import java.util.List;
 import entity.action.skills.AcraneBlast;
 
 public class Wizard extends Player {
@@ -12,7 +11,7 @@ public class Wizard extends Player {
     }
 
     @Override
-    protected boolean activateSkill(Combatant targets) {
+    public boolean activateSkill(Combatant targets) {
         if (!arcaneBlast.isReady()) {
             ui.print("Arcane Blast on cooldown (" + arcaneBlast.getRemainingCooldown() + " turns left).");
             return false;

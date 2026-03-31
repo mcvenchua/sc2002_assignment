@@ -4,9 +4,12 @@ import entity.role.Combatant;
 
 public class Potion extends Item {
 
-    public void use(Combatant user) {
-        int healAmount = 100;
-        user.modifyHp((healAmount));
+    public Potion() {
+        super("Potion");
     }
-   
+
+    @Override
+    public void use(Combatant user) {
+        user.modifyHp(100);
+    }
 }

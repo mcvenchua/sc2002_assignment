@@ -1,5 +1,4 @@
 package control;
-
 import entity.role.Combatant;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +32,9 @@ public class RoundController {
             role.onEndBattleRound();
         }
         currentRound++;
+    }
+    public void set_difficulty(int a){
+        
     }
 
 }

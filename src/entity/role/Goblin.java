@@ -1,6 +1,6 @@
 package entity.role;
 
-import entity.action.BasicAttackStrategy;
+import entity.strategy.BasicAttackStrategy;
 
 public class Goblin extends Enemy {
 

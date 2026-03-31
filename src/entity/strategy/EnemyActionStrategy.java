@@ -1,5 +1,6 @@
-package entity.action;
+package entity.strategy;
 
+import entity.action.Action;
 import entity.role.Combatant;
 import entity.role.Enemy;
 

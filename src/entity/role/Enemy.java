@@ -1,8 +1,8 @@
 package entity.role;
 
-import entity.action.EnemyActionStrategy;
+import entity.strategy.EnemyActionStrategy;
 import entity.status.StatusEffect;
-import java.util.List;
+import java.util.Iterator;
 
 public abstract class Enemy extends Combatant {
     private final EnemyActionStrategy actionStrategy;
@@ -13,13 +13,18 @@ public abstract class Enemy extends Combatant {
     }
 
     @Override
-    public void takeAction(List<Combatant> targets) {
-        for (StatusEffect effect : statusEffects) {
-            effect.apply(this);
+    public void takeAction(Combatant targets) {
+        stop = false;
+        Iterator<StatusEffect> it = statusEffects.iterator();
+        while (it.hasNext()) {
+            StatusEffect effect = it.next();
+            effect.apply(this);   
+            effect.tick();      
+            if (!effect.isActive()) it.remove(); 
         }
+
         if (!stop) {
-            Combatant target = targets.get(0);
-            actionStrategy.chooseAction(this, target).execute(target);
+            actionStrategy.chooseAction(this, targets).execute(targets);
         }
     }
 }

@@ -11,7 +11,7 @@ public class Warrior extends Player {
     }
 
     @Override
-    protected boolean activateSkill(Combatant target) {
+    public boolean activateSkill(Combatant target) {
         if (!shieldBash.isReady()) {
             ui.print("Shield Bash on cooldown (" + shieldBash.getRemainingCooldown() + " turns left).");
             return false;
