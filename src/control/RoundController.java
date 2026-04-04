@@ -4,6 +4,7 @@ import entity.role.Combatant;
 import entity.role.Enemy;
 import entity.role.Player;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import ui.UI;
 
@@ -113,36 +114,47 @@ public class RoundController {
     public void runRound(UI ui, List<Combatant> players, List<Combatant> enemies) {
         ui.print("\n=== New Round ===");
 
+        List<Combatant> alivePlayers = new ArrayList<>();
+        for (Combatant p : players) {
+            if (p instanceof Player && p.isAlive()) {
+                alivePlayers.add(p);
+            }
+        }
         List<Combatant> aliveEnemies = new ArrayList<>();
         for (Combatant e : enemies) {
-            if (e.isAlive()) {
+            if (e instanceof Enemy && e.isAlive()) {
                 aliveEnemies.add(e);
             }
         }
 
-        for (Combatant p : players) {
-            if (p instanceof Player && p.isAlive() && !aliveEnemies.isEmpty()) {
-                ui.print("\n" + p.getName() + "'s turn (HP: " + p.getHp() + ")");
-                ((Player) p).syncEnemyTargets(aliveEnemies);
+        List<Combatant> turnOrder = new ArrayList<>();
+        turnOrder.addAll(alivePlayers);
+        turnOrder.addAll(aliveEnemies);
+        turnOrder.sort(Comparator.comparingInt(Combatant::getSpeed).reversed().thenComparing(Combatant::getName));
+
+        for (Combatant actor : turnOrder) {
+            if (!actor.isAlive()) {
+                continue;
+            }
+            if (actor instanceof Player) {
+                if (aliveEnemies.isEmpty()) {
+                    continue;
+                }
+                ui.print("\n" + actor.getName() + "'s turn (HP: " + actor.getHp() + ")");
+                ((Player) actor).syncEnemyTargets(aliveEnemies);
                 Combatant target = aliveEnemies.get(0);
-                p.takeAction(target);
-                aliveEnemies.removeIf(e -> !e.isAlive());
-            }
-        }
-
-        List<Combatant> alivePlayers = new ArrayList<>();
-        for (Combatant p : players) {
-            if (p.isAlive()) {
-                alivePlayers.add(p);
-            }
-        }
-
-        for (Combatant e : enemies) {
-            if (e instanceof Enemy && e.isAlive() && !alivePlayers.isEmpty()) {
-                ui.print("\n" + e.getName() + "'s turn (HP: " + e.getHp() + ")");
-                Combatant target = alivePlayers.get(0);
-                e.takeAction(target);
+                actor.takeAction(target);
+                aliveEnemies.removeIf(x -> !x.isAlive());
                 alivePlayers.removeIf(x -> !x.isAlive());
+            } else if (actor instanceof Enemy) {
+                if (alivePlayers.isEmpty()) {
+                    continue;
+                }
+                ui.print("\n" + actor.getName() + "'s turn (HP: " + actor.getHp() + ")");
+                Combatant target = alivePlayers.get(0);
+                actor.takeAction(target);
+                alivePlayers.removeIf(x -> !x.isAlive());
+                aliveEnemies.removeIf(x -> !x.isAlive());
             }
         }
 
