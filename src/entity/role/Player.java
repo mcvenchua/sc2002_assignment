@@ -52,6 +52,9 @@ public abstract class Player extends Combatant {
             ui.print(name + " is STUNNED and cannot act!");
             return;
         }
+        for (SpecialSkill s : skills) {
+            s.tickCooldown();
+        }
         Action action = actionStrategy.chooseAction(this, target);
         if (action != null) action.execute(target);
     }

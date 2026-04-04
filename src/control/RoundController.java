@@ -159,6 +159,29 @@ public class RoundController {
         }
 
         endBattleRound();
+        printRoundStats(ui, players, enemies);
+    }
+
+    private void printRoundStats(UI ui, List<Combatant> players, List<Combatant> enemies) {
+        ui.print("");
+        ui.print("--- End of round " + getCurrentRound() + " — battlefield stats ---");
+        ui.print("Players:");
+        for (Combatant p : players) {
+            if (p instanceof Player) {
+                ui.print("  " + p.getName() + ": HP " + p.getHp() + hpSuffix(p));
+            }
+        }
+        ui.print("Enemies:");
+        for (Combatant e : enemies) {
+            if (e instanceof Enemy) {
+                ui.print("  " + e.getName() + ": HP " + e.getHp() + hpSuffix(e));
+            }
+        }
+        ui.print("");
+    }
+
+    private static String hpSuffix(Combatant c) {
+        return c.isAlive() ? "" : " (defeated)";
     }
 
     public void addEnemy(Combatant enemy) {

@@ -37,13 +37,13 @@ public abstract class Combatant {
     }
 
     public void getAttack(int attackerAttack) {
-        if (!smokeBombDuration.is_over()) return; // smoke bomb absorbs the hit
+        if (!smokeBombDuration.is_over()) return;
         int damage = Math.max(0, attackerAttack - this.defend);
         this.hp = Math.max(0, this.hp - damage);
     }
 
     public void applySmokeBomb() {
-        smokeBombDuration.set(2); // current round + next round
+        smokeBombDuration.set(2);
     }
 
     public boolean isSmokeBombActive() {
