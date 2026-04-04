@@ -6,7 +6,7 @@ public class Stun extends StatusEffect {
 
     public Stun() {
         this.name = "Stun";
-        this.duration = new Duration(2);  // 本轮 + 下一轮
+        this.duration = new Duration(2); 
     }
 
     @Override
