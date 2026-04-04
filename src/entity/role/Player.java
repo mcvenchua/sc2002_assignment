@@ -33,6 +33,11 @@ public abstract class Player extends Combatant {
         skills.add(skill);
     }
 
+    public void syncEnemyTargets(List<Combatant> opponents) {
+        enemy.clear();
+        enemy.addAll(opponents);
+    }
+
     @Override
     public void takeAction(Combatant target) {
         stop = false;
