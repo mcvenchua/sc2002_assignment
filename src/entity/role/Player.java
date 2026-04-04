@@ -33,6 +33,11 @@ public abstract class Player extends Combatant {
         skills.add(skill);
     }
 
+    public void syncEnemyTargets(List<Combatant> opponents) {
+        enemy.clear();
+        enemy.addAll(opponents);
+    }
+
     @Override
     public void takeAction(Combatant target) {
         stop = false;
@@ -46,6 +51,9 @@ public abstract class Player extends Combatant {
         if (stop) {
             ui.print(name + " is STUNNED and cannot act!");
             return;
+        }
+        for (SpecialSkill s : skills) {
+            s.tickCooldown();
         }
         Action action = actionStrategy.chooseAction(this, target);
         if (action != null) action.execute(target);

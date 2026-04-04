@@ -5,7 +5,7 @@ import entity.role.Combatant;
 public class SmokeBomb extends Item {
   
     public SmokeBomb() {
-        super("Power Stone");
+        super("Smoke Bomb");
     }
     @Override
     public void use(Combatant target) {
