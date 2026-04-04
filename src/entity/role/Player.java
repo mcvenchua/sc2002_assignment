@@ -56,11 +56,15 @@ public abstract class Player extends Combatant {
             s.tickCooldown();
         }
         Action action = actionStrategy.chooseAction(this, target);
-        if (action != null) action.execute(target);
+        if (action != null) action.execute(null);
     }
 
     public abstract boolean activateSkill(Combatant target);
 
     public List<SpecialSkill> getSkills() { return skills; }
     public List<Item> getItems() { return items; }
+
+    public List<Combatant> getEnemyTargets() {
+        return enemy;
+    }
 }
