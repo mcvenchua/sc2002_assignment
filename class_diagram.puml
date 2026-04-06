@@ -1,0 +1,268 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+' ==================== UI Layer ====================
+package "ui" {
+    interface UI {
+        +print(message: String)
+        +readInt(): int
+    }
+    class CLI {
+        -instance: CLI {static}
+        -scanner: Scanner
+        -CLI()
+        +getInstance(): CLI {static}
+        +print(message: String)
+        +readInt(): int
+    }
+    CLI ..|> UI
+}
+
+' ==================== Control Layer ====================
+package "control" {
+    interface TurnOrderStrategy {
+        +determineTurnOrder(combatants: List<Combatant>): List<Combatant>
+    }
+    class SpeedBasedTurnOrder {
+        +determineTurnOrder(combatants: List<Combatant>): List<Combatant>
+    }
+    enum Difficulty {
+        EASY
+        MEDIUM
+        HARD
+        -levelNo: int
+        -pdfDifficultyName: String
+        -initialGoblins: int
+        -initialWolves: int
+        -backupGoblins: int
+        -backupWolves: int
+        +fromLevel(levelNo: int): Difficulty {static}
+        +hasBackupWave(): boolean
+    }
+    class RoundController {
+        -currentRound: int
+        -roles: List<Combatant>
+        -enemies: List<Combatant>
+        -difficulty: Difficulty
+        -turnOrderStrategy: TurnOrderStrategy
+        +RoundController(strategy: TurnOrderStrategy)
+        +runRound(ui: UI, players: List<Combatant>, enemies: List<Combatant>)
+        +endBattleRound()
+        +addRole(role: Combatant)
+        +addEnemy(enemy: Combatant)
+        +setDifficulty(d: Difficulty)
+        +getDifficulty(): Difficulty
+        +getCurrentRound(): int
+    }
+    SpeedBasedTurnOrder ..|> TurnOrderStrategy
+    RoundController o-- TurnOrderStrategy
+    RoundController --> Difficulty
+}
+
+' ==================== Entity - Role ====================
+package "entity.role" {
+    abstract class Combatant {
+        #name: String
+        #hp: int
+        #attack: int
+        #speed: int
+        #defend: int
+        #max_hp: int
+        -defendBonusRounds: int
+        #statusEffects: List<StatusEffect>
+        #stop: boolean
+        +prepareForTurn(opponents: List<Combatant>)
+        +takeAction(target: Combatant)
+        +isAlive(): boolean
+        +getAttack(attackerAttack: int)
+        +applyDefendBuff()
+        +onEndBattleRound()
+        +addStatusEffect(effect: StatusEffect)
+        +modifyHp(delta: int)
+        +modifyAttack(delta: int)
+        +modifyDefend(delta: int)
+    }
+    abstract class Player {
+        #skills: List<SpecialSkill>
+        #items: List<Item>
+        #ui: UI
+        #enemy: List<Combatant>
+        -actionStrategy: PlayerActionStrategy
+        +prepareForTurn(opponents: List<Combatant>)
+        +takeAction(target: Combatant)
+        +activateSkill(target: Combatant): boolean {abstract}
+        +syncEnemyTargets(opponents: List<Combatant>)
+        +setUI(ui: UI)
+        +setActionStrategy(strategy: PlayerActionStrategy)
+        +getSkills(): List<SpecialSkill>
+        +getItems(): List<Item>
+        +getEnemyTargets(): List<Combatant>
+    }
+    abstract class Enemy {
+        -actionStrategy: EnemyActionStrategy
+        +takeAction(target: Combatant)
+    }
+    class Warrior {
+        -shieldBash: ShieldBash
+        +activateSkill(target: Combatant): boolean
+    }
+    class Wizard {
+        -arcaneBlast: AcraneBlast
+        +activateSkill(target: Combatant): boolean
+    }
+    class Goblin
+    class Wolf
+
+    Player --|> Combatant
+    Enemy --|> Combatant
+    Warrior --|> Player
+    Wizard --|> Player
+    Goblin --|> Enemy
+    Wolf --|> Enemy
+
+    Combatant "1" o-- "*" StatusEffect
+    Player o-- UI
+    Player o-- PlayerActionStrategy
+    Player "1" o-- "*" SpecialSkill
+    Player "1" o-- "*" Item
+    Enemy o-- EnemyActionStrategy
+    Warrior --> ShieldBash
+    Wizard --> AcraneBlast
+}
+
+' ==================== Entity - Action ====================
+package "entity.action" {
+    interface Action {
+        +execute(target: Combatant)
+    }
+    class BasicAttack {
+        -attacker: Combatant
+        -target: Combatant
+        -attack: int
+        +execute(target: Combatant)
+    }
+    class Defend {
+        -defender: Combatant
+        +execute(target: Combatant)
+    }
+    class UseItem {
+        -user: Combatant
+        -item: Item
+        -target: Combatant
+        +execute(target: Combatant)
+    }
+    BasicAttack ..|> Action
+    Defend ..|> Action
+    UseItem ..|> Action
+    UseItem --> Item
+}
+
+package "entity.action.skills" {
+    abstract class SpecialSkill {
+        +cooldown: CoolDown
+        +isReady(): boolean
+        +tickCooldown()
+        +getRemainingCooldown(): int
+        +execute(target: Combatant) {abstract}
+    }
+    class ShieldBash {
+        -attacker: Combatant
+        +execute(target: Combatant)
+    }
+    class AcraneBlast {
+        -user: Combatant
+        -targets: List<Combatant>
+        +execute(target: Combatant)
+    }
+    class CoolDown {
+        -remainingTicks: int
+        +pass()
+        +set(ticks: int)
+        +isReady(): boolean
+        +getRemainingTicks(): int
+    }
+    SpecialSkill ..|> Action
+    ShieldBash --|> SpecialSkill
+    AcraneBlast --|> SpecialSkill
+    SpecialSkill "1" *-- "1" CoolDown
+}
+
+' ==================== Entity - Item ====================
+package "entity.item" {
+    abstract class Item {
+        #name: String
+        +getName(): String
+        +resolveTarget(user: Combatant, suggested: Combatant): Combatant
+        +use(target: Combatant) {abstract}
+    }
+    class Potion {
+        +use(target: Combatant)
+    }
+    class SmokeBomb {
+        +use(target: Combatant)
+    }
+    class PowerStone {
+        -skill: SpecialSkill
+        +resolveTarget(user: Combatant, suggested: Combatant): Combatant
+        +use(target: Combatant)
+    }
+    Potion --|> Item
+    SmokeBomb --|> Item
+    PowerStone --|> Item
+    PowerStone --> SpecialSkill
+}
+
+' ==================== Entity - Status ====================
+package "entity.status" {
+    abstract class StatusEffect {
+        #name: String
+        #duration: Duration
+        +tick()
+        +onRoundEnd()
+        +blocksDamage(): boolean
+        +isActive(): boolean
+        +apply(target: Combatant) {abstract}
+    }
+    class Stun {
+        +apply(target: Combatant)
+    }
+    class SmokeBombEffect {
+        +apply(target: Combatant)
+        +tick()
+        +onRoundEnd()
+        +blocksDamage(): boolean
+    }
+    class Duration {
+        -remainingRound: int
+        +set(a: int)
+        +get(): int
+        +reset()
+        +is_over(): boolean
+    }
+    Stun --|> StatusEffect
+    SmokeBombEffect --|> StatusEffect
+    StatusEffect "1" *-- "1" Duration
+}
+
+' ==================== Strategy ====================
+package "entity.strategy" {
+    interface PlayerActionStrategy {
+        +chooseAction(self: Player, target: Combatant): Action
+    }
+    interface EnemyActionStrategy {
+        +chooseAction(self: Enemy, target: Combatant): Action
+    }
+    class MenuInputStrategy {
+        -ui: UI
+        +chooseAction(self: Player, target: Combatant): Action
+    }
+    class BasicAttackStrategy {
+        +chooseAction(self: Enemy, target: Combatant): Action
+    }
+    MenuInputStrategy ..|> PlayerActionStrategy
+    BasicAttackStrategy ..|> EnemyActionStrategy
+    MenuInputStrategy --> UI
+}
+
+@enduml
