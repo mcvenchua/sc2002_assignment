@@ -112,7 +112,7 @@ public class RoundController {
     }
 
     public void runRound(UI ui, List<Combatant> players, List<Combatant> enemies) {
-        ui.print("\n=== New Round ===");
+        ui.print("\n=== Round " + (currentRound + 1) + " ===");
 
         List<Combatant> alivePlayers = new ArrayList<>();
         for (Combatant p : players) {
