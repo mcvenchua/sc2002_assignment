@@ -18,7 +18,6 @@ public class MenuInputStrategy implements PlayerActionStrategy {
         this.ui = ui;
     }
 
-    /** @return picked enemy, or null if none / invalid (caller should continue loop). */
     private Combatant promptPickEnemy(Player self, String heading) {
         List<Combatant> foes = self.getEnemyTargets();
         if (foes.isEmpty()) {
