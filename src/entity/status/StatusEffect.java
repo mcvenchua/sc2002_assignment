@@ -12,6 +12,12 @@ public abstract class StatusEffect {
         if (!duration.is_over()) duration.set(duration.get() - 1);
     }
 
+    public void onRoundEnd() {}
+
+    public boolean blocksDamage() {
+        return false;
+    }
+
     public boolean isActive() { return !duration.is_over(); }
 
     public abstract void apply(Combatant target);

@@ -11,6 +11,11 @@ public class PowerStone extends Item {
     }
 
     @Override
+    public Combatant resolveTarget(Combatant user, Combatant suggestedTarget) {
+        return suggestedTarget != null ? suggestedTarget : user;
+    }
+
+    @Override
     public void use(Combatant target) {
         int savedCooldown = skill.cooldown.getRemainingTicks();
         skill.execute(target);

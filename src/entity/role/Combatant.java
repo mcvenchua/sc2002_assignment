@@ -1,6 +1,4 @@
 package entity.role;
-import entity.action.Action;
-import entity.status.Duration;
 import entity.status.StatusEffect;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,11 +10,9 @@ public abstract class Combatant {
     protected int defend;
     protected  int max_hp;
     private int defendBonusRounds = 0;
-    private Duration smokeBombDuration = new Duration(0);
     protected List<StatusEffect> statusEffects = new ArrayList<>();
     protected boolean stop = false;
 
-    protected List<Action> next_act;
 
 
     public Combatant(String name, int hp, int attack, int speed, int defend, int max_hp) {
@@ -28,46 +24,40 @@ public abstract class Combatant {
         this.max_hp   = max_hp;
     }
 
-    public void takeAction(Combatant target) {
-        // Override in Player and Enemy to decide and execute an action
-    }
-    
+    public void prepareForTurn(List<Combatant> opponents) {}
+
+    public void takeAction(Combatant target) {}
+
     public boolean isAlive() {
         return hp > 0;
     }
 
     public void getAttack(int attackerAttack) {
-        if (!smokeBombDuration.is_over()) return;
+        for (StatusEffect e : statusEffects) {
+            if (e.isActive() && e.blocksDamage()) return;
+        }
         int damage = Math.max(0, attackerAttack - this.defend);
         this.hp = Math.max(0, this.hp - damage);
-    }
-
-    public void applySmokeBomb() {
-        smokeBombDuration.set(2);
-    }
-
-    public boolean isSmokeBombActive() {
-        return !smokeBombDuration.is_over();
     }
 
     public String getName() {
         return name;
     }
 
-    public int getHp() { 
+    public int getHp() {
         return hp;
     }
-    
-    public int getAttack() { 
-        return attack; 
+
+    public int getAttack() {
+        return attack;
     }
-    
-    public int getSpeed() { 
-        return speed; 
+
+    public int getSpeed() {
+        return speed;
     }
-    
-    public int getDefend() { 
-        return defend; 
+
+    public int getDefend() {
+        return defend;
     }
 
     public void modifyDefend(int delta) {
@@ -86,9 +76,10 @@ public abstract class Combatant {
             defendBonusRounds--;
             if (defendBonusRounds == 0) modifyDefend(-10);
         }
-        if (!smokeBombDuration.is_over()) {
-            smokeBombDuration.set(smokeBombDuration.get() - 1);
+        for (StatusEffect e : statusEffects) {
+            e.onRoundEnd();
         }
+        statusEffects.removeIf(e -> !e.isActive());
     }
 
     public void modifyAttack(int attack){

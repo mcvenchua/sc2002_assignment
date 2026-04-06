@@ -1,74 +1,23 @@
 package control;
 
 import entity.role.Combatant;
-import entity.role.Enemy;
-import entity.role.Player;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import ui.UI;
 
 public class RoundController {
 
-    public enum Difficulty {
-        EASY(1, "Easy", 3, 0, 0, 0),
-        MEDIUM(2, "Medium", 1, 1, 0, 2),
-        HARD(3, "Hard", 2, 0, 1, 2);
-
-        private final int levelNo;
-        private final String pdfDifficultyName;
-        private final int initialGoblins;
-        private final int initialWolves;
-        private final int backupGoblins;
-        private final int backupWolves;
-
-        Difficulty(int levelNo, String pdfDifficultyName, int initialGoblins, int initialWolves, int backupGoblins, int backupWolves) {
-            this.levelNo = levelNo;
-            this.pdfDifficultyName = pdfDifficultyName;
-            this.initialGoblins = initialGoblins;
-            this.initialWolves = initialWolves;
-            this.backupGoblins = backupGoblins;
-            this.backupWolves = backupWolves;
-        }
-
-        public int getLevelNo() {
-            return levelNo;
-        }
-
-        public String getPdfDifficultyName() {
-            return pdfDifficultyName;
-        }
-
-        public int getInitialGoblins() {
-            return initialGoblins;
-        }
-
-        public int getInitialWolves() {
-            return initialWolves;
-        }
-
-        public int getBackupGoblins() {
-            return backupGoblins;
-        }
-
-        public int getBackupWolves() {
-            return backupWolves;
-        }
-
-        public boolean hasBackupWave() {
-            return backupGoblins > 0 || backupWolves > 0;
-        }
-    }
-
     private int currentRound;
     private List<Combatant> roles;
     private List<Combatant> enemies;
     private Difficulty difficulty = Difficulty.EASY;
+    private final TurnOrderStrategy turnOrderStrategy;
 
-    public RoundController() {
+    public RoundController(TurnOrderStrategy turnOrderStrategy) {
         this.currentRound = 0;
         this.roles = new ArrayList<>();
         this.enemies = new ArrayList<>();
+        this.turnOrderStrategy = turnOrderStrategy;
     }
 
     public void setDifficulty(Difficulty difficulty) {
@@ -83,24 +32,7 @@ public class RoundController {
     }
 
     public void setDifficultyFromLevel(int levelNo) {
-        switch (levelNo) {
-            case 1:
-                setDifficulty(Difficulty.EASY);
-                break;
-            case 2:
-                setDifficulty(Difficulty.MEDIUM);
-                break;
-            case 3:
-                setDifficulty(Difficulty.HARD);
-                break;
-            default:
-                throw new IllegalArgumentException(
-                        "levelNo must be 1 (Easy), 2 (Medium), or 3 (Hard) per PDF §3.5");
-        }
-    }
-
-    public void set_difficulty(int levelNo) {
-        setDifficultyFromLevel(levelNo);
+        setDifficulty(Difficulty.fromLevel(levelNo));
     }
 
     public void addRole(Combatant role) {
@@ -116,46 +48,30 @@ public class RoundController {
 
         List<Combatant> alivePlayers = new ArrayList<>();
         for (Combatant p : players) {
-            if (p instanceof Player && p.isAlive()) {
-                alivePlayers.add(p);
-            }
+            if (p.isAlive()) alivePlayers.add(p);
         }
         List<Combatant> aliveEnemies = new ArrayList<>();
         for (Combatant e : enemies) {
-            if (e instanceof Enemy && e.isAlive()) {
-                aliveEnemies.add(e);
-            }
+            if (e.isAlive()) aliveEnemies.add(e);
         }
 
-        List<Combatant> turnOrder = new ArrayList<>();
-        turnOrder.addAll(alivePlayers);
-        turnOrder.addAll(aliveEnemies);
-        turnOrder.sort(Comparator.comparingInt(Combatant::getSpeed).reversed().thenComparing(Combatant::getName));
+        List<Combatant> allAlive = new ArrayList<>();
+        allAlive.addAll(alivePlayers);
+        allAlive.addAll(aliveEnemies);
+        List<Combatant> turnOrder = turnOrderStrategy.determineTurnOrder(allAlive);
 
         for (Combatant actor : turnOrder) {
-            if (!actor.isAlive()) {
-                continue;
-            }
-            if (actor instanceof Player) {
-                if (aliveEnemies.isEmpty()) {
-                    continue;
-                }
-                ui.print("\n" + actor.getName() + "'s turn (HP: " + actor.getHp() + ")");
-                ((Player) actor).syncEnemyTargets(aliveEnemies);
-                Combatant target = aliveEnemies.get(0);
-                actor.takeAction(target);
-                aliveEnemies.removeIf(x -> !x.isAlive());
-                alivePlayers.removeIf(x -> !x.isAlive());
-            } else if (actor instanceof Enemy) {
-                if (alivePlayers.isEmpty()) {
-                    continue;
-                }
-                ui.print("\n" + actor.getName() + "'s turn (HP: " + actor.getHp() + ")");
-                Combatant target = alivePlayers.get(0);
-                actor.takeAction(target);
-                alivePlayers.removeIf(x -> !x.isAlive());
-                aliveEnemies.removeIf(x -> !x.isAlive());
-            }
+            if (!actor.isAlive()) continue;
+
+            List<Combatant> opponents = alivePlayers.contains(actor) ? aliveEnemies : alivePlayers;
+            if (opponents.isEmpty()) continue;
+
+            ui.print("\n" + actor.getName() + "'s turn (HP: " + actor.getHp() + ")");
+            actor.prepareForTurn(opponents);
+            actor.takeAction(opponents.get(0));
+
+            alivePlayers.removeIf(x -> !x.isAlive());
+            aliveEnemies.removeIf(x -> !x.isAlive());
         }
 
         endBattleRound();
@@ -167,15 +83,11 @@ public class RoundController {
         ui.print("--- End of round " + getCurrentRound() + " — battlefield stats ---");
         ui.print("Players:");
         for (Combatant p : players) {
-            if (p instanceof Player) {
-                ui.print("  " + p.getName() + ": HP " + p.getHp() + hpSuffix(p));
-            }
+            ui.print("  " + p.getName() + ": HP " + p.getHp() + hpSuffix(p));
         }
         ui.print("Enemies:");
         for (Combatant e : enemies) {
-            if (e instanceof Enemy) {
-                ui.print("  " + e.getName() + ": HP " + e.getHp() + hpSuffix(e));
-            }
+            ui.print("  " + e.getName() + ": HP " + e.getHp() + hpSuffix(e));
         }
         ui.print("");
     }

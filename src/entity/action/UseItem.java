@@ -1,7 +1,6 @@
 package entity.action;
 
 import entity.item.Item;
-import entity.item.PowerStone;
 import entity.role.Combatant;
 
 public class UseItem implements Action {
@@ -17,12 +16,7 @@ public class UseItem implements Action {
 
     @Override
     public void execute(Combatant target) {
-        Combatant resolved;
-        if (item instanceof PowerStone) {
-            resolved = target != null ? target : (this.target != null ? this.target : user);
-        } else {
-            resolved = user;
-        }
-        item.use(resolved);
+        Combatant suggestedTarget = target != null ? target : this.target;
+        item.use(item.resolveTarget(user, suggestedTarget));
     }
 }

@@ -1,5 +1,6 @@
+import control.Difficulty;
 import control.RoundController;
-import control.RoundController.Difficulty;
+import control.SpeedBasedTurnOrder;
 import entity.action.skills.SpecialSkill;
 import entity.item.Potion;
 import entity.item.PowerStone;
@@ -129,7 +130,7 @@ public class Main {
     private static void runBattle(CLI cli, GameConfig config) {
         Player player = createPlayerFromConfig(config, cli);
 
-        RoundController roundController = new RoundController();
+        RoundController roundController = new RoundController(new SpeedBasedTurnOrder());
         roundController.setDifficultyFromLevel(config.diffChoice);
         Difficulty difficulty = roundController.getDifficulty();
 

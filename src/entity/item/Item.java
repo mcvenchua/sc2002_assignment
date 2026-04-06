@@ -11,5 +11,10 @@ public abstract class Item {
 
     public String getName() { return name; }
 
+
+    public Combatant resolveTarget(Combatant user, Combatant suggestedTarget) {
+        return user;
+    }
+
     public abstract void use(Combatant target);
 }
