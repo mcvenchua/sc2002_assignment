@@ -1,6 +1,9 @@
 package control;
 
 import entity.role.Combatant;
+import entity.role.Goblin;
+import entity.role.Player;
+import entity.role.Wolf;
 import java.util.ArrayList;
 import java.util.List;
 import ui.UI;
@@ -9,6 +12,7 @@ public class RoundController {
 
     private int currentRound;
     private List<Combatant> roles;
+    private List<Combatant> players;
     private List<Combatant> enemies;
     private Difficulty difficulty = Difficulty.EASY;
     private final TurnOrderStrategy turnOrderStrategy;
@@ -16,6 +20,7 @@ public class RoundController {
     public RoundController(TurnOrderStrategy turnOrderStrategy) {
         this.currentRound = 0;
         this.roles = new ArrayList<>();
+        this.players = new ArrayList<>();
         this.enemies = new ArrayList<>();
         this.turnOrderStrategy = turnOrderStrategy;
     }
@@ -35,12 +40,76 @@ public class RoundController {
         setDifficulty(Difficulty.fromLevel(levelNo));
     }
 
+    public void addPlayer(Player player) {
+        players.add(player);
+        roles.add(player);
+    }
+
     public void addRole(Combatant role) {
         roles.add(role);
     }
 
     public List<Combatant> getRoles() {
         return roles;
+    }
+
+    public List<Combatant> getPlayers() {
+        return players;
+    }
+
+    public void spawnEnemies() {
+        int g = difficulty.getInitialGoblins();
+        int w = difficulty.getInitialWolves();
+        for (int i = 0; i < g; i++) addEnemy(new Goblin("Goblin " + enemyLetter(i)));
+        for (int i = 0; i < w; i++) addEnemy(new Wolf("Wolf " + enemyLetter(i)));
+    }
+
+    private void spawnBackupEnemies() {
+        int g = difficulty.getBackupGoblins();
+        int w = difficulty.getBackupWolves();
+        for (int i = 0; i < g; i++) addEnemy(new Goblin("Goblin (backup) " + enemyLetter(i)));
+        for (int i = 0; i < w; i++) addEnemy(new Wolf("Wolf (backup) " + enemyLetter(i)));
+    }
+
+    private static String enemyLetter(int index) {
+        return String.valueOf((char) ('A' + index));
+    }
+
+    public void runBattle(UI ui, Player player) {
+        ui.print("");
+        ui.print("--- Battle start ---");
+        ui.print("Difficulty: " + difficulty.getPdfDifficultyName());
+
+        boolean backupSpawned = false;
+
+        while (true) {
+            boolean playerAlive = player.isAlive();
+            long aliveEnemyCount = enemies.stream().filter(Combatant::isAlive).count();
+
+            if (!playerAlive) {
+                ui.print("\n=== Battle Over ===");
+                ui.print("Defeated. Don't give up, try again!");
+                ui.print("Enemies remaining: " + aliveEnemyCount);
+                ui.print("Total rounds survived: " + currentRound);
+                return;
+            }
+
+            if (aliveEnemyCount == 0) {
+                if (!backupSpawned && difficulty.hasBackupWave()) {
+                    ui.print("\n*** Initial wave eliminated — backup spawn! ***");
+                    spawnBackupEnemies();
+                    backupSpawned = true;
+                    continue;
+                }
+                ui.print("\n=== Battle Over ===");
+                ui.print("Congratulations, you have defeated all your enemies.");
+                ui.print("Remaining HP: " + player.getHp());
+                ui.print("Total rounds: " + currentRound);
+                return;
+            }
+
+            runRound(ui, players, enemies);
+        }
     }
 
     public void runRound(UI ui, List<Combatant> players, List<Combatant> enemies) {

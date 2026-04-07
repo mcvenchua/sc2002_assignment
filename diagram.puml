@@ -1,0 +1,304 @@
+@startuml TurnBasedCombat
+
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+hide empty members
+
+' ─── Entry & Control ────────────────────────────────────────────
+package "root" {
+    class Main {
+        +{static} main(args: String[])
+    }
+}
+
+package "control" {
+    class GameConfig {
+        +classChoice: int
+        +diffChoice: int
+        +itemSlot1: int
+        +itemSlot2: int
+    }
+
+    class Game {
+        -cli: CLI
+        +runBattle(config: GameConfig)
+        -createPlayer(cfg: GameConfig): Player
+        -addItem(player: Player, c: int)
+        -spawnInitialEnemies(d: Difficulty, enemies, rc: RoundController)
+        -spawnBackup(d: Difficulty, enemies, rc: RoundController)
+        -enemyLetter(index: int): String
+    }
+
+    class RoundController {
+        -currentRound: int
+        -roles: List<Combatant>
+        -enemies: List<Combatant>
+        -difficulty: Difficulty
+        +runRound(ui: UI, players, enemies)
+        +addRole(role: Combatant)
+        +addEnemy(enemy: Combatant)
+        +endBattleRound()
+        +getCurrentRound(): int
+        +setDifficultyFromLevel(levelNo: int)
+        +getDifficulty(): Difficulty
+    }
+
+    interface TurnOrderStrategy {
+        +determineTurnOrder(combatants: List<Combatant>): List<Combatant>
+    }
+
+    class SpeedBasedTurnOrder {
+        +determineTurnOrder(combatants: List<Combatant>): List<Combatant>
+    }
+
+    enum Difficulty {
+        EASY
+        MEDIUM
+        HARD
+        +getInitialGoblins(): int
+        +getInitialWolves(): int
+        +getBackupGoblins(): int
+        +getBackupWolves(): int
+        +hasBackupWave(): boolean
+        +{static} fromLevel(levelNo: int): Difficulty
+    }
+}
+
+' ─── UI ─────────────────────────────────────────────────────────
+package "ui" {
+    interface UI {
+        +print(message: String)
+        +readInt(): int
+    }
+
+    class CLI {
+        -{static} instance: CLI
+        +{static} getInstance(): CLI
+        +print(message: String)
+        +readInt(): int
+    }
+
+    class SetupMenu {
+        -ui: UI
+        +promptFullSetup(): GameConfig
+        -promptItemChoice(slot: int): int
+        +promptPostGame(): int
+    }
+}
+
+' ─── Entity: Role ───────────────────────────────────────────────
+package "entity.role" {
+    abstract class Combatant {
+        name: String
+        hp: int
+        attack: int
+        speed: int
+        defend: int
+        max_hp: int
+        +isAlive(): boolean
+        +getAttack(attackerAttack: int)
+        +applyDefendBuff()
+        +onEndBattleRound()
+        +takeAction(target: Combatant)
+        +prepareForTurn(opponents: List<Combatant>)
+        +addStatusEffect(effect: StatusEffect)
+        +modifyHp(delta: int)
+        +modifyAttack(delta: int)
+        +modifyDefend(delta: int)
+    }
+
+    abstract class Player {
+        skills: List<SpecialSkill>
+        items: List<Item>
+        ui: UI
+        +setUI(ui: UI)
+        +setActionStrategy(strategy: PlayerActionStrategy)
+        +takeAction(target: Combatant)
+        +activateSkill(target: Combatant): boolean
+        +getSkills(): List<SpecialSkill>
+        +getItems(): List<Item>
+        +getEnemyTargets(): List<Combatant>
+    }
+
+    abstract class Enemy {
+        -actionStrategy: EnemyActionStrategy
+        +takeAction(target: Combatant)
+    }
+
+    class Warrior {
+        -shieldBash: ShieldBash
+        +activateSkill(target: Combatant): boolean
+    }
+
+    class Wizard {
+        -arcaneBlast: ArcaneBlast
+        +activateSkill(target: Combatant): boolean
+    }
+
+    class Goblin
+    class Wolf
+}
+
+' ─── Entity: Action ─────────────────────────────────────────────
+package "entity.action" {
+    interface Action {
+        +execute(target: Combatant)
+    }
+
+    class BasicAttack {
+        +execute(target: Combatant)
+    }
+
+    class Defend {
+        +execute(target: Combatant)
+    }
+
+    class UseItem {
+        +execute(target: Combatant)
+    }
+}
+
+package "entity.action.skills" {
+    abstract class SpecialSkill {
+        +cooldown: CoolDown
+        +isReady(): boolean
+        +resetCooldown(turns: int)
+        +tickCooldown()
+        +getRemainingCooldown(): int
+    }
+
+    class ShieldBash {
+        +execute(target: Combatant)
+    }
+
+    class ArcaneBlast {
+        +execute(target: Combatant)
+    }
+
+    class CoolDown {
+        -remainingTicks: int
+        +pass()
+        +set(ticks: int)
+        +isReady(): boolean
+        +getRemainingTicks(): int
+    }
+}
+
+' ─── Entity: Item ───────────────────────────────────────────────
+package "entity.item" {
+    abstract class Item {
+        name: String
+        +use(target: Combatant)
+        +resolveTarget(user: Combatant, suggested: Combatant): Combatant
+    }
+
+    class Potion
+    class SmokeBomb
+    class PowerStone {
+        -skill: SpecialSkill
+    }
+}
+
+' ─── Entity: Status ─────────────────────────────────────────────
+package "entity.status" {
+    abstract class StatusEffect {
+        name: String
+        duration: Duration
+        +apply(target: Combatant)
+        +tick()
+        +onRoundEnd()
+        +isActive(): boolean
+        +blocksDamage(): boolean
+    }
+
+    class Stun
+    class SmokeBombEffect
+
+    class Duration {
+        +get(): int
+        +set(v: int)
+        +is_over(): boolean
+    }
+}
+
+' ─── Entity: Strategy ───────────────────────────────────────────
+package "entity.strategy" {
+    interface PlayerActionStrategy {
+        +chooseAction(self: Player, target: Combatant): Action
+    }
+
+    interface EnemyActionStrategy {
+        +chooseAction(self: Enemy, target: Combatant): Action
+    }
+
+    class MenuInputStrategy {
+        +chooseAction(self: Player, target: Combatant): Action
+    }
+
+    class BasicAttackStrategy {
+        +chooseAction(self: Enemy, target: Combatant): Action
+    }
+}
+
+' ─── Relationships ──────────────────────────────────────────────
+
+' Entry / Control
+Main ..> Game
+Main ..> SetupMenu
+Main ..> CLI
+
+SetupMenu o-- UI
+SetupMenu ..> GameConfig
+
+Game o-- CLI
+Game ..> GameConfig
+Game ..> RoundController
+Game ..> SpeedBasedTurnOrder
+
+RoundController o-- TurnOrderStrategy
+RoundController o-- Difficulty
+SpeedBasedTurnOrder ..|> TurnOrderStrategy
+
+' UI
+CLI ..|> UI
+
+' Role hierarchy
+Player --|> Combatant
+Enemy --|> Combatant
+Warrior --|> Player
+Wizard --|> Player
+Goblin --|> Enemy
+Wolf --|> Enemy
+
+' Role dependencies
+Player o-- PlayerActionStrategy
+Player o-- "0..*" Item
+Player o-- "0..*" SpecialSkill
+Enemy o-- EnemyActionStrategy
+Combatant o-- "0..*" StatusEffect
+
+' Action hierarchy
+SpecialSkill ..|> Action
+BasicAttack ..|> Action
+Defend ..|> Action
+UseItem ..|> Action
+ShieldBash --|> SpecialSkill
+ArcaneBlast --|> SpecialSkill
+SpecialSkill o-- CoolDown
+
+' Item hierarchy
+Potion --|> Item
+SmokeBomb --|> Item
+PowerStone --|> Item
+PowerStone o-- SpecialSkill
+
+' Status hierarchy
+Stun --|> StatusEffect
+SmokeBombEffect --|> StatusEffect
+StatusEffect o-- Duration
+
+' Strategy implementations
+MenuInputStrategy ..|> PlayerActionStrategy
+BasicAttackStrategy ..|> EnemyActionStrategy
+
+@enduml
