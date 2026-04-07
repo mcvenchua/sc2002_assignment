@@ -1,6 +1,5 @@
 import control.RoundController;
 import control.SpeedBasedTurnOrder;
-import entity.action.skills.SpecialSkill;
 import entity.item.Potion;
 import entity.item.PowerStone;
 import entity.item.SmokeBomb;
@@ -26,7 +25,7 @@ public class Main {
             this.itemSlot2 = itemSlot2;
         }
     }
-
+    //root
     public static void main(String[] args) {
         CLI cli = CLI.getInstance();
 
@@ -36,24 +35,11 @@ public class Main {
         GameConfig config = promptFullSetup(cli);
 
         while (true) {
-            Player player = createPlayer(config, cli);
-            RoundController rc = new RoundController(new SpeedBasedTurnOrder());
-            rc.setDifficultyFromLevel(config.diffChoice);
-            rc.addPlayer(player);
-            rc.spawnEnemies();
-            rc.runBattle(cli, player);
+            new RoundController(new SpeedBasedTurnOrder()).runBattle(cli, createPlayer(config, cli), config.diffChoice);
 
             int next = promptPostGame(cli);
-            if (next == 3) {
-                cli.print("Goodbye!");
-                return;
-            }
-            if (next == 2) {
-                cli.print("");
-                cli.print("--- New game (home screen) ---");
-                cli.print("");
-                config = promptFullSetup(cli);
-            }
+            if (next == 3) { cli.print("Goodbye!"); return; }
+            if (next == 2) { cli.print(""); cli.print("--- New game ---"); cli.print(""); config = promptFullSetup(cli); }
             // next == 1: replay with same config (loop continues)
         }
     }
@@ -104,17 +90,14 @@ public class Main {
         Player player = cfg.classChoice == 1 ? new Warrior("Warrior") : new Wizard("Wizard");
         player.setUI(cli);
         player.setActionStrategy(new MenuInputStrategy(cli));
-        addItem(player, cfg.itemSlot1);
-        addItem(player, cfg.itemSlot2);
-        return player;
-    }
-
-    private static void addItem(Player player, int c) {
-        switch (c) {
-            case 1 -> player.getItems().add(new Potion());
-            case 2 -> player.getItems().add(new SmokeBomb());
-            default -> player.getItems().add(new PowerStone(player.getSkills().get(0)));
+        for (int c : new int[]{cfg.itemSlot1, cfg.itemSlot2}) {
+            switch (c) {
+                case 1 -> player.getItems().add(new Potion());
+                case 2 -> player.getItems().add(new SmokeBomb());
+                default -> player.getItems().add(new PowerStone(player.getSkills().get(0)));
+            }
         }
+        return player;
     }
 
     private static int promptPostGame(UI ui) {

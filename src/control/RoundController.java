@@ -57,7 +57,7 @@ public class RoundController {
         return players;
     }
 
-    public void spawnEnemies() {
+    private void spawnEnemies() {
         int g = difficulty.getInitialGoblins();
         int w = difficulty.getInitialWolves();
         for (int i = 0; i < g; i++) addEnemy(new Goblin("Goblin " + enemyLetter(i)));
@@ -75,7 +75,11 @@ public class RoundController {
         return String.valueOf((char) ('A' + index));
     }
 
-    public void runBattle(UI ui, Player player) {
+    public void runBattle(UI ui, Player player, int difficultyLevel) {
+        setDifficultyFromLevel(difficultyLevel);
+        addPlayer(player);
+        spawnEnemies();
+
         ui.print("");
         ui.print("--- Battle start ---");
         ui.print("Difficulty: " + difficulty.getPdfDifficultyName());
