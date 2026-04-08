@@ -1,6 +1,26 @@
-@startuml
+@startuml TurnBasedCombat
 skinparam classAttributeIconSize 0
 skinparam linetype ortho
+
+' ==================== Entry Point ====================
+class Main {
+    +main(args: String[]) {static}
+    -promptFullSetup(cli: UI): GameConfig {static}
+    -promptItemChoice(ui: UI, slot: int): int {static}
+    -createPlayer(cfg: GameConfig, cli: CLI): Player {static}
+    -promptPostGame(ui: UI): int {static}
+}
+class GameConfig {
+    -classChoice: int
+    -diffChoice: int
+    -itemSlot1: int
+    -itemSlot2: int
+}
+Main +-- GameConfig
+Main ..> CLI
+Main ..> RoundController
+Main ..> SpeedBasedTurnOrder
+Main ..> MenuInputStrategy
 
 ' ==================== UI Layer ====================
 package "ui" {
@@ -43,16 +63,23 @@ package "control" {
     class RoundController {
         -currentRound: int
         -roles: List<Combatant>
+        -players: List<Combatant>
         -enemies: List<Combatant>
         -difficulty: Difficulty
         -turnOrderStrategy: TurnOrderStrategy
         +RoundController(strategy: TurnOrderStrategy)
+        +runBattle(ui: UI, player: Player, difficultyLevel: int)
         +runRound(ui: UI, players: List<Combatant>, enemies: List<Combatant>)
         +endBattleRound()
+        +addPlayer(player: Player)
         +addRole(role: Combatant)
         +addEnemy(enemy: Combatant)
         +setDifficulty(d: Difficulty)
+        +setDifficultyFromLevel(levelNo: int)
         +getDifficulty(): Difficulty
+        +getRoles(): List<Combatant>
+        +getPlayers(): List<Combatant>
+        +getEnemies(): List<Combatant>
         +getCurrentRound(): int
     }
     SpeedBasedTurnOrder ..|> TurnOrderStrategy
@@ -76,6 +103,12 @@ package "entity.role" {
         +takeAction(target: Combatant)
         +isAlive(): boolean
         +getAttack(attackerAttack: int)
+        +getName(): String
+        +getHp(): int
+        +getAttack(): int
+        +getSpeed(): int
+        +getDefend(): int
+        +setStop(stop: boolean)
         +applyDefendBuff()
         +onEndBattleRound()
         +addStatusEffect(effect: StatusEffect)
@@ -95,6 +128,7 @@ package "entity.role" {
         +syncEnemyTargets(opponents: List<Combatant>)
         +setUI(ui: UI)
         +setActionStrategy(strategy: PlayerActionStrategy)
+        +learnSkill(skill: SpecialSkill)
         +getSkills(): List<SpecialSkill>
         +getItems(): List<Item>
         +getEnemyTargets(): List<Combatant>
@@ -162,6 +196,7 @@ package "entity.action.skills" {
     abstract class SpecialSkill {
         +cooldown: CoolDown
         +isReady(): boolean
+        +resetCooldown(turns: int)
         +tickCooldown()
         +getRemainingCooldown(): int
         +execute(target: Combatant) {abstract}
