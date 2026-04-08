@@ -1,0 +1,72 @@
+@startuml "Scenario 6.2 - Step 4 Corrected"
+title Step 4: Player's Turn — Warrior executes ShieldBash on Goblin, stunning it\nWarrior: HP=260, ATK=40, DEF=20, SPD=30 | Goblin: HP=55, ATK=35, DEF=15, SPD=25
+
+participant "CLI\n<<Boundary>>" as CLI
+participant "RoundController\n<<Control>>" as RC
+participant "MenuInputStrategy\n<<Control>>" as MIS
+participant "Warrior\n<<Entity>>" as Warrior
+participant "ShieldBash\n<<Entity>>" as SB
+participant "Goblin\n<<Entity>>" as Goblin
+participant "Stun\n<<Entity>>" as Stun
+
+RC -> Warrior : prepareForTurn(opponents: List<Combatant>)
+activate Warrior
+Warrior -> Warrior : syncEnemyTargets(opponents)
+deactivate Warrior
+
+RC -> Warrior : takeAction(target: Goblin)
+activate Warrior
+
+Warrior -> SB : tickCooldown()
+note right of SB : ShieldBash CD = 0\nready to use
+
+Warrior -> MIS : chooseAction(self: Warrior, target: Goblin)
+activate MIS
+
+MIS -> CLI : print("Choose action: 1.Attack  2.Defend  3.Special Skill  4.Use Item")
+CLI --> MIS : readInt() = 3
+
+MIS -> CLI : print("Choose target for special skill:\n1. Goblin (HP: 55)")
+CLI --> MIS : readInt() = 1
+
+MIS -> Warrior : activateSkill(target: Goblin)
+activate Warrior
+
+Warrior -> SB : execute(target: Goblin)
+activate SB
+
+create Stun
+SB -> Stun : new Stun()
+
+SB -> Goblin : addStatusEffect(stun)
+activate Goblin
+note right of Goblin : statusEffects.add(Stun)\nGoblin stunned for 2 turns
+Goblin --> SB
+deactivate Goblin
+
+SB -> Goblin : getAttack(attackerAttack: 40)
+activate Goblin
+note right of Goblin : damage = max(0, 40 - 15) = 25\nhp = max(0, 55 - 25) = 30
+Goblin --> SB : hp updated
+deactivate Goblin
+
+SB -> SB : cooldown.set(3)
+note right of SB : ShieldBash on cooldown\nfor 3 turns
+
+SB --> Warrior
+deactivate SB
+
+Warrior --> MIS : return true
+deactivate Warrior
+
+MIS --> Warrior : return null
+deactivate MIS
+
+note right of Warrior : action == null, skip execute()
+
+Warrior --> RC : turn complete
+deactivate Warrior
+
+RC -> CLI : print("Warrior uses ShieldBash! 25 dmg.\nGoblin HP: 30. Goblin STUNNED (2 turns). CD: 3")
+
+@enduml
