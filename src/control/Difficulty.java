@@ -37,6 +37,6 @@ public enum Difficulty {
             if (d.levelNo == levelNo) return d;
         }
         throw new IllegalArgumentException(
-                "levelNo must be 1 (Easy), 2 (Medium), or 3 (Hard) per PDF §3.5");
+                "levelNo must be 1 (Easy), 2 (Medium), or 3 (Hard) ");
     }
 }

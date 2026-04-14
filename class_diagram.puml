@@ -1,6 +1,8 @@
 @startuml TurnBasedCombat
+left to right direction
+skinparam dpi 300
 skinparam classAttributeIconSize 0
-skinparam linetype ortho
+skinparam linetype polyline
 
 ' ==================== Entry Point ====================
 class Main {
@@ -17,10 +19,6 @@ class GameConfig {
     -itemSlot2: int
 }
 Main +-- GameConfig
-Main ..> CLI
-Main ..> RoundController
-Main ..> SpeedBasedTurnOrder
-Main ..> MenuInputStrategy
 
 ' ==================== UI Layer ====================
 package "ui" {
@@ -30,8 +28,6 @@ package "ui" {
     }
     class CLI {
         -instance: CLI {static}
-        -scanner: Scanner
-        -CLI()
         +getInstance(): CLI {static}
         +print(message: String)
         +readInt(): int
@@ -51,14 +47,22 @@ package "control" {
         EASY
         MEDIUM
         HARD
+        --
         -levelNo: int
         -pdfDifficultyName: String
         -initialGoblins: int
         -initialWolves: int
         -backupGoblins: int
         -backupWolves: int
-        +fromLevel(levelNo: int): Difficulty {static}
+        --
+        +getLevelNo(): int
+        +getPdfDifficultyName(): String
+        +getInitialGoblins(): int
+        +getInitialWolves(): int
+        +getBackupGoblins(): int
+        +getBackupWolves(): int
         +hasBackupWave(): boolean
+        +fromLevel(levelNo: int): Difficulty {static}
     }
     class RoundController {
         -currentRound: int
@@ -67,20 +71,24 @@ package "control" {
         -enemies: List<Combatant>
         -difficulty: Difficulty
         -turnOrderStrategy: TurnOrderStrategy
-        +RoundController(strategy: TurnOrderStrategy)
+        --
         +runBattle(ui: UI, player: Player, difficultyLevel: int)
         +runRound(ui: UI, players: List<Combatant>, enemies: List<Combatant>)
-        +endBattleRound()
         +addPlayer(player: Player)
         +addRole(role: Combatant)
         +addEnemy(enemy: Combatant)
-        +setDifficulty(d: Difficulty)
-        +setDifficultyFromLevel(levelNo: int)
-        +getDifficulty(): Difficulty
         +getRoles(): List<Combatant>
         +getPlayers(): List<Combatant>
         +getEnemies(): List<Combatant>
+        +setDifficulty(difficulty: Difficulty)
+        +setDifficultyFromLevel(levelNo: int)
+        +getDifficulty(): Difficulty
+        +endBattleRound()
         +getCurrentRound(): int
+        -spawnEnemies()
+        -spawnBackupEnemies()
+        -printRoundStats(ui: UI, players: List<Combatant>, enemies: List<Combatant>)
+        -enemyLetter(index: int): String {static}
     }
     SpeedBasedTurnOrder ..|> TurnOrderStrategy
     RoundController o-- TurnOrderStrategy
@@ -99,6 +107,7 @@ package "entity.role" {
         -defendBonusRounds: int
         #statusEffects: List<StatusEffect>
         #stop: boolean
+        --
         +prepareForTurn(opponents: List<Combatant>)
         +takeAction(target: Combatant)
         +isAlive(): boolean
@@ -108,13 +117,13 @@ package "entity.role" {
         +getAttack(): int
         +getSpeed(): int
         +getDefend(): int
-        +setStop(stop: boolean)
+        +modifyDefend(delta: int)
+        +modifyAttack(attack: int)
+        +modifyHp(delta: int)
         +applyDefendBuff()
         +onEndBattleRound()
         +addStatusEffect(effect: StatusEffect)
-        +modifyHp(delta: int)
-        +modifyAttack(delta: int)
-        +modifyDefend(delta: int)
+        +setStop(stop: boolean)
     }
     abstract class Player {
         #skills: List<SpecialSkill>
@@ -122,28 +131,32 @@ package "entity.role" {
         #ui: UI
         #enemy: List<Combatant>
         -actionStrategy: PlayerActionStrategy
-        +prepareForTurn(opponents: List<Combatant>)
-        +takeAction(target: Combatant)
-        +activateSkill(target: Combatant): boolean {abstract}
-        +syncEnemyTargets(opponents: List<Combatant>)
+        --
         +setUI(ui: UI)
         +setActionStrategy(strategy: PlayerActionStrategy)
         +learnSkill(skill: SpecialSkill)
+        +prepareForTurn(opponents: List<Combatant>)
+        +syncEnemyTargets(opponents: List<Combatant>)
+        +takeAction(target: Combatant)
+        +activateSkill(target: Combatant): boolean {abstract}
         +getSkills(): List<SpecialSkill>
         +getItems(): List<Item>
         +getEnemyTargets(): List<Combatant>
     }
     abstract class Enemy {
         -actionStrategy: EnemyActionStrategy
-        +takeAction(target: Combatant)
+        --
+        +takeAction(targets: Combatant)
     }
     class Warrior {
         -shieldBash: ShieldBash
+        --
         +activateSkill(target: Combatant): boolean
     }
     class Wizard {
         -arcaneBlast: AcraneBlast
-        +activateSkill(target: Combatant): boolean
+        --
+        +activateSkill(targets: Combatant): boolean
     }
     class Goblin
     class Wolf
@@ -156,13 +169,6 @@ package "entity.role" {
     Wolf --|> Enemy
 
     Combatant "1" o-- "*" StatusEffect
-    Player o-- UI
-    Player o-- PlayerActionStrategy
-    Player "1" o-- "*" SpecialSkill
-    Player "1" o-- "*" Item
-    Enemy o-- EnemyActionStrategy
-    Warrior --> ShieldBash
-    Wizard --> AcraneBlast
 }
 
 ' ==================== Entity - Action ====================
@@ -174,27 +180,31 @@ package "entity.action" {
         -attacker: Combatant
         -target: Combatant
         -attack: int
+        --
         +execute(target: Combatant)
     }
     class Defend {
         -defender: Combatant
+        --
         +execute(target: Combatant)
     }
     class UseItem {
         -user: Combatant
         -item: Item
         -target: Combatant
+        --
         +execute(target: Combatant)
     }
+
     BasicAttack ..|> Action
     Defend ..|> Action
     UseItem ..|> Action
-    UseItem --> Item
 }
 
 package "entity.action.skills" {
     abstract class SpecialSkill {
         +cooldown: CoolDown
+        --
         +isReady(): boolean
         +resetCooldown(turns: int)
         +tickCooldown()
@@ -203,20 +213,25 @@ package "entity.action.skills" {
     }
     class ShieldBash {
         -attacker: Combatant
+        --
         +execute(target: Combatant)
     }
     class AcraneBlast {
         -user: Combatant
         -targets: List<Combatant>
-        +execute(target: Combatant)
+        --
+        +execute(ignored: Combatant)
     }
     class CoolDown {
         -remainingTicks: int
+        --
         +pass()
         +set(ticks: int)
+        +reset()
         +isReady(): boolean
         +getRemainingTicks(): int
     }
+
     SpecialSkill ..|> Action
     ShieldBash --|> SpecialSkill
     AcraneBlast --|> SpecialSkill
@@ -227,21 +242,24 @@ package "entity.action.skills" {
 package "entity.item" {
     abstract class Item {
         #name: String
+        --
         +getName(): String
-        +resolveTarget(user: Combatant, suggested: Combatant): Combatant
+        +resolveTarget(user: Combatant, suggestedTarget: Combatant): Combatant
         +use(target: Combatant) {abstract}
     }
     class Potion {
-        +use(target: Combatant)
+        +use(user: Combatant)
     }
     class SmokeBomb {
         +use(target: Combatant)
     }
     class PowerStone {
         -skill: SpecialSkill
-        +resolveTarget(user: Combatant, suggested: Combatant): Combatant
+        --
+        +resolveTarget(user: Combatant, suggestedTarget: Combatant): Combatant
         +use(target: Combatant)
     }
+
     Potion --|> Item
     SmokeBomb --|> Item
     PowerStone --|> Item
@@ -253,6 +271,8 @@ package "entity.status" {
     abstract class StatusEffect {
         #name: String
         #duration: Duration
+        --
+        +getName(): String
         +tick()
         +onRoundEnd()
         +blocksDamage(): boolean
@@ -270,11 +290,13 @@ package "entity.status" {
     }
     class Duration {
         -remainingRound: int
+        --
         +set(a: int)
-        +get(): int
         +reset()
+        +get(): int
         +is_over(): boolean
     }
+
     Stun --|> StatusEffect
     SmokeBombEffect --|> StatusEffect
     StatusEffect "1" *-- "1" Duration
@@ -290,14 +312,24 @@ package "entity.strategy" {
     }
     class MenuInputStrategy {
         -ui: UI
+        --
         +chooseAction(self: Player, target: Combatant): Action
+        -promptPickEnemy(self: Player, heading: String): Combatant
     }
     class BasicAttackStrategy {
         +chooseAction(self: Enemy, target: Combatant): Action
     }
+
     MenuInputStrategy ..|> PlayerActionStrategy
     BasicAttackStrategy ..|> EnemyActionStrategy
-    MenuInputStrategy --> UI
 }
 
+' ==================== Core Associations ====================
+Main ..> CLI
+Main ..> RoundController
+Player o-- PlayerActionStrategy
+Enemy o-- EnemyActionStrategy
+UseItem --> Item
+Player "1" o-- "*" Item
+Player "1" o-- "*" SpecialSkill
 @enduml
