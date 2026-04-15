@@ -1,9 +1,18 @@
-@startuml TurnBasedCombat
-left to right direction
-skinparam dpi 300
-skinparam classAttributeIconSize 0
-skinparam linetype polyline
+@startuml
 
+!pragma PLOT_LIMIT_SIZE 16384
+
+skinparam dpi 300
+
+skinparam linetype ortho
+skinparam nodesep 60
+skinparam ranksep 80
+
+left to right direction
+skinparam classAttributeIconSize 0
+allow_mixing
+
+' 这里开始你的类定义...
 ' ==================== Entry Point ====================
 class Main {
     +main(args: String[]) {static}
